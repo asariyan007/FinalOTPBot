@@ -11,7 +11,7 @@ def init_db():
     c.execute("""
     CREATE TABLE IF NOT EXISTS status (
         id INTEGER PRIMARY KEY,
-        on BOOLEAN,
+        is_on BOOLEAN,
         link TEXT
     )
     """)
@@ -55,7 +55,6 @@ def init_db():
     )
     """)
 
-    # === NEW: cache table ===
     c.execute("""
     CREATE TABLE IF NOT EXISTS otp_cache (
         otp TEXT PRIMARY KEY
@@ -65,18 +64,12 @@ def init_db():
     # Insert default if not exist
     c.execute("SELECT COUNT(*) FROM status")
     if c.fetchone()[0] == 0:
-        c.execute("INSERT INTO status (id, on, link) VALUES (1, 1, 'https://t.me/TE_X_NUMBERS')")
+        c.execute("INSERT INTO status (id, is_on, link) VALUES (1, 1, 'https://t.me/TE_X_NUMBERS')")
 
-    # Add default admin if not exist
+    # Default values
     c.execute("INSERT OR IGNORE INTO admins (user_id) VALUES (5359578794)")
-
-    # Add default group if not exist
     c.execute("INSERT OR IGNORE INTO groups (group_id) VALUES (-1002825600269)")
-
-    # Add default api if not exist
     c.execute("INSERT OR IGNORE INTO apis (url) VALUES ('https://techflare.2cloud.top/mainapi.php')")
-
-    # Add default credit, link, and file for group
     c.execute("INSERT OR IGNORE INTO credits (group_id, credit) VALUES (-1002825600269, '𝙏𝙀𝘼𝙈 𝙀𝙇𝙄𝙏𝙀 𝙓')")
     c.execute("INSERT OR IGNORE INTO group_links (group_id, link) VALUES (-1002825600269, 'https://t.me/TEAM_ELITE_X')")
     c.execute("INSERT OR IGNORE INTO group_files (group_id, file) VALUES (-1002825600269, 'https://t.me/TE_X_NUMBERS')")
@@ -90,7 +83,7 @@ def get_status():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 
-    c.execute("SELECT on, link FROM status WHERE id = 1")
+    c.execute("SELECT is_on, link FROM status WHERE id = 1")
     status_row = c.fetchone()
 
     c.execute("SELECT user_id FROM admins")
@@ -129,7 +122,7 @@ def save_status(data):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 
-    c.execute("UPDATE status SET on = ?, link = ? WHERE id = 1", (int(data["on"]), data["link"]))
+    c.execute("UPDATE status SET is_on = ?, link = ? WHERE id = 1", (int(data["on"]), data["link"]))
 
     c.execute("DELETE FROM admins")
     for uid in data["admins"]:
@@ -159,7 +152,7 @@ def save_status(data):
     conn.close()
 
 
-# === NEW: OTP Cache ===
+# === OTP CACHE ===
 def is_duplicate(otp):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
@@ -175,5 +168,6 @@ def add_to_cache(otp):
     conn.commit()
     conn.close()
 
-# Initialize database at startup
+
+# Initialize DB
 init_db()
