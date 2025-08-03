@@ -57,7 +57,7 @@ def format_message(entry, gid, status):
         f"<b>🌍 Country:</b> {country} {emoji}\n"
         f"<b>⚙️ Service:</b> {entry['Platform']}\n"
         f"<b>☎️ Number:</b> <code>{entry['Number']}</code>\n"
-        f"<b>🔑 OTP:</b> <code>{otp}</code>\n"
+        f"<b>🔑 OTP:</b> <code>{otp or 'N/A'}</code>\n"
         f"✉️ <b>Full Message:</b>\n<pre>{full}</pre>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📝 Note: ~ Wait at least 30 seconds to get your requested OTP code ~\n"
@@ -67,7 +67,6 @@ def format_message(entry, gid, status):
         [InlineKeyboardButton("🚀Main Channel", url=main_link)],
         [InlineKeyboardButton("📁Numbers File", url=num_file)]
     ])
-
 async def fetch_otps(app, status):
     if not status.get("on", True):
         return
