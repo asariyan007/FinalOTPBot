@@ -55,6 +55,13 @@ def init_db():
     )
     """)
 
+    # === NEW: cache table ===
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS otp_cache (
+        otp TEXT PRIMARY KEY
+    )
+    """)
+
     # Insert default if not exist
     c.execute("SELECT COUNT(*) FROM status")
     if c.fetchone()[0] == 0:
@@ -77,6 +84,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 # === LOAD STATUS ===
 def get_status():
     conn = sqlite3.connect(DB_FILE)
@@ -95,13 +103,13 @@ def get_status():
     apis = [row[0] for row in c.fetchall()]
 
     c.execute("SELECT group_id, credit FROM credits")
-    credits = {str(row[0]): row[1] for row in c.fetchall()}
+    credits = {str(row[0]): row[1] for row in c.fetchall()]
 
     c.execute("SELECT group_id, link FROM group_links")
-    group_links = {str(row[0]): row[1] for row in c.fetchall()}
+    group_links = {str(row[0]): row[1] for row in c.fetchall()]
 
     c.execute("SELECT group_id, file FROM group_files")
-    group_files = {str(row[0]): row[1] for row in c.fetchall()}
+    group_files = {str(row[0]): row[1] for row in c.fetchall()]
 
     conn.close()
 
@@ -123,35 +131,49 @@ def save_status(data):
 
     c.execute("UPDATE status SET on = ?, link = ? WHERE id = 1", (int(data["on"]), data["link"]))
 
-    # Sync admins
     c.execute("DELETE FROM admins")
     for uid in data["admins"]:
         c.execute("INSERT INTO admins (user_id) VALUES (?)", (uid,))
 
-    # Sync groups
     c.execute("DELETE FROM groups")
     for gid in data["groups"]:
         c.execute("INSERT INTO groups (group_id) VALUES (?)", (gid,))
 
-    # Sync apis
     c.execute("DELETE FROM apis")
     for url in data["apis"]:
         c.execute("INSERT INTO apis (url) VALUES (?)", (url,))
 
-    # Sync credits
     c.execute("DELETE FROM credits")
     for gid, name in data["credits"].items():
         c.execute("INSERT INTO credits (group_id, credit) VALUES (?, ?)", (gid, name))
 
-    # Sync group_links
     c.execute("DELETE FROM group_links")
     for gid, link in data["group_links"].items():
         c.execute("INSERT INTO group_links (group_id, link) VALUES (?, ?)", (gid, link))
 
-    # Sync group_files
     c.execute("DELETE FROM group_files")
     for gid, file in data["group_files"].items():
         c.execute("INSERT INTO group_files (group_id, file) VALUES (?, ?)", (gid, file))
 
     conn.commit()
     conn.close()
+
+
+# === NEW: OTP Cache ===
+def is_duplicate(otp):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT otp FROM otp_cache WHERE otp = ?", (otp,))
+    exists = c.fetchone() is not None
+    conn.close()
+    return exists
+
+def add_to_cache(otp):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("INSERT OR IGNORE INTO otp_cache (otp) VALUES (?)", (otp,))
+    conn.commit()
+    conn.close()
+
+# Initialize database at startup
+init_db()
