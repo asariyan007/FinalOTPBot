@@ -103,7 +103,7 @@ def get_status():
     apis = [row[0] for row in c.fetchall()]
 
     c.execute("SELECT group_id, credit FROM credits")
-    credits = {str(row[0]): row[1] for row in c.fetchall()]
+    credits = {str(row[0]): row[1] for row in c.fetchall()}
 
     c.execute("SELECT group_id, link FROM group_links")
     group_links = {str(row[0]): row[1] for row in c.fetchall()]
