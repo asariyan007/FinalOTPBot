@@ -15,9 +15,13 @@ from commands import *
 
 nest_asyncio.apply()
 
-BOT_TOKEN = "7943158999:AAG5t9je40J4Sb1p6CaCLLEfRKtckp3JWtc"
+BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+WEBHOOK_URL = os.getenv("WEBHOOK_DOMAIN", "").strip()
 ADMIN_ID = 5359578794
-WEBHOOK_URL = "http://finalotpbot-production.up.railway.app"  # Your Railway domain
+
+if not BOT_TOKEN or not WEBHOOK_URL.startswith("https://"):
+    print("❌ BOT_TOKEN or WEBHOOK_DOMAIN missing or invalid. Please set Railway variables.")
+    exit(1)
 
 DEFAULT_CHANNEL = "https://t.me/TEAM_ELITE_X"
 DEFAULT_FILE = "https://t.me/TE_X_NUMBERS"
