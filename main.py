@@ -17,7 +17,7 @@ nest_asyncio.apply()
 
 BOT_TOKEN = "7943158999:AAG5t9je40J4Sb1p6CaCLLEfRKtckp3JWtc"
 ADMIN_ID = 5359578794
-WEBHOOK_URL = "https://final-otp-bot-production.up.railway.app"  # Your Railway domain
+WEBHOOK_URL = "http://finalotpbot-production.up.railway.app"  # Your Railway domain
 
 DEFAULT_CHANNEL = "https://t.me/TEAM_ELITE_X"
 DEFAULT_FILE = "https://t.me/TE_X_NUMBERS"
