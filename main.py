@@ -1,4 +1,4 @@
-# main.py
+# main.py (with API health notification system)
 
 import os
 import asyncio
@@ -27,6 +27,9 @@ DEFAULT_CHANNEL = "https://t.me/TEAM_ELITE_X"
 DEFAULT_FILE = "https://t.me/TE_X_NUMBERS"
 DEFAULT_CREDIT = "𝙏𝙀𝘼𝙈 𝙀𝙇𝙄𝙏𝙀 𝙓"
 DEFAULT_APIS = ["https://techflare.2cloud.top/mainapi.php"]
+
+# ✅ New: Memory to track API status
+api_status_memory = {}
 
 def extract_code(text):
     match = re.search(r'\b(\d{4,8}|\d{3}-\d{3})\b', text)
@@ -67,6 +70,7 @@ def format_message(entry, gid, status):
         [InlineKeyboardButton("🚀Main Channel", url=main_link)],
         [InlineKeyboardButton("📁Numbers File", url=num_file)]
     ])
+
 async def fetch_otps(app, status):
     if not status.get("on", True):
         return
@@ -76,6 +80,16 @@ async def fetch_otps(app, status):
         try:
             response = requests.get(url, timeout=10)
             data = response.json()
+
+            # ✅ If API was previously failed, now it's working
+            if api_status_memory.get(url) == "failed":
+                await app.bot.send_message(
+                    chat_id=ADMIN_ID,
+                    text=f"✅ API is working again:\n<code>{url}</code>",
+                    parse_mode="HTML"
+                )
+            api_status_memory[url] = "working"
+
             if not isinstance(data, list) or not data:
                 continue
 
@@ -92,16 +106,19 @@ async def fetch_otps(app, status):
                     text, buttons = format_message(entry, gid, status)
                     await app.bot.send_message(chat_id=gid, text=text, parse_mode="HTML", reply_markup=buttons)
 
-            break
+            break  # if one API works, skip rest
         except Exception as e:
-            try:
-                await app.bot.send_message(
-                    chat_id=ADMIN_ID,
-                    text=f"⚠️ API Error:\n<pre>{str(e)}</pre>",
-                    parse_mode="HTML"
-                )
-            except:
-                print("⚠️ Failed to report error to Telegram")
+            # ✅ If this API wasn't already marked failed, notify once
+            if api_status_memory.get(url) != "failed":
+                try:
+                    await app.bot.send_message(
+                        chat_id=ADMIN_ID,
+                        text=f"⚠️ API Error:\n<code>{url}</code>\n<pre>{str(e)}</pre>",
+                        parse_mode="HTML"
+                    )
+                except:
+                    print(f"⚠️ Failed to report error for {url}")
+            api_status_memory[url] = "failed"
 
 def get_all_commands():
     return [
