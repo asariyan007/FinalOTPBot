@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from database import get_status, save_status
+from main import api_status_memory
 
 def is_admin(user_id, status):
     return user_id in status.get("admins", [])
@@ -47,11 +48,22 @@ async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id, status):
         await update.message.reply_text("❌ You are not authorized to command this bot.")
         return
-    on_off = "✅ ON" if status.get("on") else "❌ OFF"
-    groups = "\n".join([f"{g}" for g in status.get("groups", [])])
-    apis = "\n".join(status.get("apis", []))
-    msg = f"📊 <b>Status:</b> {on_off}\n<b>Groups:</b>\n{groups or 'None'}\n<b>APIs:</b>\n{apis or 'None'}"
-    await update.message.reply_text(msg, parse_mode="HTML")
+
+    bot_status = "ON ☑️" if status.get("on") else "OFF ❌"
+    group_list = ", ".join([str(g) for g in status.get("groups", [])]) or "None"
+    api_list = status.get("apis", [])
+    api_text = "\n".join(api_list) or "None"
+    any_working = any(api_status_memory.get(api) == "working" for api in api_list)
+    api_status_line = "Working ☑️" if any_working else "Not Working ✖️"
+
+    msg = (
+        f"📊 Status: {bot_status}\n"
+        f"💼 Groups: {group_list}\n"
+        f"📡 APIs: {api_text}\n"
+        f"🛠️ API Status: {api_status_line}"
+    )
+
+    await update.message.reply_text(msg)
 
 async def addgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
