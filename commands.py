@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from database import get_status, save_status
-from main import api_status_memory
+import requests
 
 def is_admin(user_id, status):
     return user_id in status.get("admins", [])
@@ -52,15 +52,23 @@ async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot_status = "ON ☑️" if status.get("on") else "OFF ❌"
     group_list = ", ".join([str(g) for g in status.get("groups", [])]) or "None"
     api_list = status.get("apis", [])
-    api_text = "\n".join(api_list) or "None"
-    any_working = any(api_status_memory.get(api) == "working" for api in api_list)
-    api_status_line = "Working ☑️" if any_working else "Not Working ✖️"
+    api_text = ""
+    for api in api_list:
+        try:
+            r = requests.get(api, timeout=5)
+            r.raise_for_status()
+            r.json()  # Ensure response is valid JSON
+            api_text += f"{api}\n🛠️ API Status: Working ☑️\n"
+        except Exception:
+            api_text += f"{api}\n🛠️ API Status: Not Working ✖️\n"
+
+    if not api_text:
+        api_text = "None"
 
     msg = (
         f"📊 Status: {bot_status}\n"
         f"💼 Groups: {group_list}\n"
-        f"📡 APIs: {api_text}\n"
-        f"🛠️ API Status: {api_status_line}"
+        f"📡 APIs:\n{api_text}"
     )
 
     await update.message.reply_text(msg)
