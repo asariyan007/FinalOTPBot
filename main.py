@@ -31,12 +31,11 @@ DEFAULT_APIS = ["https://techflare.2cloud.top/mainapi.php"]
 
 api_status_memory = {}
 
-# ✅ FIXED extract_code to support all types
 def extract_code(text):
     patterns = [
-        r'(?i)\b(?:FB-)?(\d{4,8})\b',         # Match: 47034, FB-06310
-        r'#\s?(\d{4,8})\b',                   # Match: #445999
-        r'\b\d{3}-\d{3}\b',                   # Match: 123-456
+        r'(?i)\b(?:FB-)?(\d{4,8})\b',
+        r'#\s?(\d{4,8})\b',
+        r'\b\d{3}-\d{3}\b',
     ]
     for pattern in patterns:
         match = re.search(pattern, text)
@@ -106,6 +105,11 @@ async def fetch_otps(app, status):
 
             new_entries = []
             for entry in data:
+                # ✅ Skip invalid entries like {'Number': 0, 'Platform': 0, 'OTP': 0}
+                if not all(isinstance(entry.get(k), str) and entry.get(k).strip() for k in ("Number", "Platform", "OTP")):
+                    print("[SKIPPED] Invalid entry:", entry)
+                    continue
+
                 uid = hashlib.md5((entry["Number"] + entry["Platform"] + entry["OTP"]).encode()).hexdigest()
                 print("[DEBUG] UID:", uid)
 
@@ -135,6 +139,7 @@ async def fetch_otps(app, status):
                 except:
                     print(f"⚠️ Failed to report error for {url}")
             api_status_memory[url] = "failed"
+
 def get_all_commands():
     return [
         ("start", start),
