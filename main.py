@@ -81,7 +81,6 @@ def format_message(entry, gid, status):
     ])
 
 async def fetch_otps(app, status):
-async def fetch_otps(app, status):
     if not status.get("on", True):
         return
 
@@ -136,7 +135,6 @@ async def fetch_otps(app, status):
                 except:
                     print(f"⚠️ Failed to report error for {url}")
             api_status_memory[url] = "failed"
-
 def get_all_commands():
     return [
         ("start", start),
