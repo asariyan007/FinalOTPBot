@@ -81,14 +81,18 @@ def format_message(entry, gid, status):
     ])
 
 async def fetch_otps(app, status):
+async def fetch_otps(app, status):
     if not status.get("on", True):
         return
 
     apis = status.get("apis", DEFAULT_APIS)
+    print("[DEBUG] Loaded APIs:", apis)
+
     for url in apis:
         try:
             response = requests.get(url, timeout=10)
             data = response.json()
+            print(f"[DEBUG] API response from {url}: {data}")
 
             if api_status_memory.get(url) == "failed":
                 await app.bot.send_message(
@@ -104,17 +108,24 @@ async def fetch_otps(app, status):
             new_entries = []
             for entry in data:
                 uid = hashlib.md5((entry["Number"] + entry["Platform"] + entry["OTP"]).encode()).hexdigest()
+                print("[DEBUG] UID:", uid)
+
                 if is_duplicate(uid):
+                    print(f"[SKIPPED] Duplicate UID: {uid}")
                     continue
+
                 add_to_cache(uid)
                 new_entries.append(entry)
+                print("[NEW] Added entry:", entry)
 
             for entry in new_entries:
                 for gid in status["groups"]:
                     text, buttons = format_message(entry, gid, status)
                     await app.bot.send_message(chat_id=gid, text=text, parse_mode="HTML", reply_markup=buttons)
+                    print(f"[SENT] OTP sent to group {gid}: {entry['OTP']}")
 
         except Exception as e:
+            print(f"[ERROR] Exception from {url}: {e}")
             if api_status_memory.get(url) != "failed":
                 try:
                     await app.bot.send_message(
