@@ -60,6 +60,14 @@ def init_db():
     )
     """)
 
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS admin_permissions (
+        admin_id INTEGER,
+        group_id INTEGER,
+        PRIMARY KEY (admin_id, group_id)
+    )
+    """)
+
     # Insert default if not exist
     c.execute("SELECT COUNT(*) FROM status")
     if c.fetchone()[0] == 0:
@@ -101,6 +109,12 @@ def get_status():
     c.execute("SELECT group_id, file FROM group_files")
     group_files = {str(row[0]): row[1] for row in c.fetchall()}
 
+    c.execute("SELECT admin_id, group_id FROM admin_permissions")
+    raw_permissions = c.fetchall()
+    admin_permissions = {}
+    for aid, gid in raw_permissions:
+        admin_permissions.setdefault(aid, []).append(gid)
+
     conn.close()
 
     return {
@@ -111,7 +125,8 @@ def get_status():
         "apis": apis,
         "credits": credits,
         "group_links": group_links,
-        "group_files": group_files
+        "group_files": group_files,
+        "admin_permissions": admin_permissions
     }
 
 # === SAVE STATUS ===
@@ -144,6 +159,11 @@ def save_status(data):
     c.execute("DELETE FROM group_files")
     for gid, file in data["group_files"].items():
         c.execute("INSERT INTO group_files (group_id, file) VALUES (?, ?)", (gid, file))
+
+    c.execute("DELETE FROM admin_permissions")
+    for aid, groups in data.get("admin_permissions", {}).items():
+        for gid in groups:
+            c.execute("INSERT INTO admin_permissions (admin_id, group_id) VALUES (?, ?)", (aid, gid))
 
     conn.commit()
     conn.close()
