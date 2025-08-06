@@ -158,6 +158,12 @@ def get_all_commands():
         ("rmvapi", rmvapi),
         ("listapis", listapis),
         ("admins", admins),
+
+        # ✅ Newly added commands:
+        ("broadcast", broadcast),
+        ("allow", allow_group_access),
+        ("disallow", disallow_group_access),
+        ("permissions", view_permissions),
     ]
 
 async def main():
