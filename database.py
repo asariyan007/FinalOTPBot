@@ -1,5 +1,4 @@
 import sqlite3
-import json
 
 DB_FILE = "bot_data.db"
 
@@ -57,7 +56,7 @@ def init_db():
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS otp_cache (
-        otp TEXT PRIMARY KEY
+        uid TEXT PRIMARY KEY
     )
     """)
 
@@ -66,7 +65,6 @@ def init_db():
     if c.fetchone()[0] == 0:
         c.execute("INSERT INTO status (id, is_on, link) VALUES (1, 1, 'https://t.me/TE_X_NUMBERS')")
 
-    # Default values
     c.execute("INSERT OR IGNORE INTO admins (user_id) VALUES (5359578794)")
     c.execute("INSERT OR IGNORE INTO groups (group_id) VALUES (-1002825600269)")
     c.execute("INSERT OR IGNORE INTO apis (url) VALUES ('https://techflare.2cloud.top/mainapi.php')")
@@ -76,7 +74,6 @@ def init_db():
 
     conn.commit()
     conn.close()
-
 
 # === LOAD STATUS ===
 def get_status():
@@ -151,23 +148,21 @@ def save_status(data):
     conn.commit()
     conn.close()
 
-
 # === OTP CACHE ===
-def is_duplicate(otp):
+def is_duplicate(uid):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("SELECT otp FROM otp_cache WHERE otp = ?", (otp,))
+    c.execute("SELECT uid FROM otp_cache WHERE uid = ?", (uid,))
     exists = c.fetchone() is not None
     conn.close()
     return exists
 
-def add_to_cache(otp):
+def add_to_cache(uid):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("INSERT OR IGNORE INTO otp_cache (otp) VALUES (?)", (otp,))
+    c.execute("INSERT OR IGNORE INTO otp_cache (uid) VALUES (?)", (uid,))
     conn.commit()
     conn.close()
-
 
 # Initialize DB
 init_db()
