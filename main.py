@@ -1,4 +1,4 @@
-# main.py (with API health notification system)
+# main.py (with API health notification to group)
 
 import os
 import asyncio
@@ -18,6 +18,7 @@ nest_asyncio.apply()
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 WEBHOOK_URL = os.getenv("WEBHOOK_DOMAIN", "").strip()
 ADMIN_ID = 5359578794
+NOTIFY_CHAT_ID = -1002820327439  # ✅ All API status messages will go here
 
 if not BOT_TOKEN or not WEBHOOK_URL.startswith("https://"):
     print("❌ BOT_TOKEN or WEBHOOK_DOMAIN missing or invalid. Please set Railway variables.")
@@ -84,7 +85,7 @@ async def fetch_otps(app, status):
             # ✅ If API was previously failed, now it's working
             if api_status_memory.get(url) == "failed":
                 await app.bot.send_message(
-                    chat_id=ADMIN_ID,
+                    chat_id=NOTIFY_CHAT_ID,
                     text=f"✅ API is working again:\n<code>{url}</code>",
                     parse_mode="HTML"
                 )
@@ -112,7 +113,7 @@ async def fetch_otps(app, status):
             if api_status_memory.get(url) != "failed":
                 try:
                     await app.bot.send_message(
-                        chat_id=ADMIN_ID,
+                        chat_id=NOTIFY_CHAT_ID,
                         text=f"⚠️ API Error:\n<code>{url}</code>\n<pre>{str(e)}</pre>",
                         parse_mode="HTML"
                     )
