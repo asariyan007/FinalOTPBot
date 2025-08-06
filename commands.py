@@ -3,13 +3,24 @@ from telegram.ext import ContextTypes
 from database import get_status, save_status
 import requests
 
+OWNER_ID = 5359578794
+
+
 def is_admin(user_id, status):
     return user_id in status.get("admins", [])
 
+def is_owner(user_id):
+    return user_id == OWNER_ID
+
+
+def has_limited_access(user_id, status):
+    return is_owner(user_id) or user_id in status.get("admins", [])
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use /start to view all commands.")
         return
 
     await update.message.reply_text(
@@ -25,27 +36,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/listapis /admins"
     )
 
+
 async def on(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
+    if not has_limited_access(update.effective_user.id, status):
         await update.message.reply_text("❌ You are not authorized to command this bot.")
         return
     status["on"] = True
     save_status(status)
     await update.message.reply_text("✅ Bot is now ON.")
 
+
 async def off(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
+    if not has_limited_access(update.effective_user.id, status):
         await update.message.reply_text("❌ You are not authorized to command this bot.")
         return
     status["on"] = False
     save_status(status)
     await update.message.reply_text("🛑 Bot is now OFF.")
 
+
 async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
+    if not has_limited_access(update.effective_user.id, status):
         await update.message.reply_text("❌ You are not authorized to command this bot.")
         return
 
@@ -73,10 +87,11 @@ async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(msg)
 
+
 async def addgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 1:
         await update.message.reply_text("❌ Usage: /addgroup <chat_id>")
@@ -89,10 +104,11 @@ async def addgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Group already exists.")
 
+
 async def rmvgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 1:
         await update.message.reply_text("❌ Usage: /rmvgroup <chat_id>")
@@ -105,10 +121,11 @@ async def rmvgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Group not found.")
 
+
 async def addadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 1:
         await update.message.reply_text("❌ Usage: /addadmin <user_id>")
@@ -121,10 +138,11 @@ async def addadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Admin already exists.")
 
+
 async def rmvadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 1:
         await update.message.reply_text("❌ Usage: /rmvadmin <user_id>")
@@ -137,18 +155,20 @@ async def rmvadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Admin not found.")
 
+
 async def admins(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     admin_list = "\n".join([f"<code>{aid}</code>" for aid in status["admins"]])
     await update.message.reply_text(f"👮‍♂️ Current Admins:\n{admin_list or 'None'}", parse_mode="HTML")
 
+
 async def cnglink(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 1:
         await update.message.reply_text("❌ Usage: /cnglink <new_file_link>")
@@ -157,10 +177,11 @@ async def cnglink(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_status(status)
     await update.message.reply_text("✅ Default numbers file link updated.")
 
+
 async def cngcredit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) < 2:
         await update.message.reply_text("❌ Usage: /cngcredit <group_id> <new_credit>")
@@ -171,10 +192,11 @@ async def cngcredit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_status(status)
     await update.message.reply_text(f"✅ Credit updated for {gid}.")
 
+
 async def cngcnllink(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 2:
         await update.message.reply_text("❌ Usage: /cngcnllink <group_id> <channel_link>")
@@ -184,10 +206,11 @@ async def cngcnllink(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_status(status)
     await update.message.reply_text(f"✅ Main channel link updated for {gid}.")
 
+
 async def cngnumlink(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 2:
         await update.message.reply_text("❌ Usage: /cngnumlink <group_id> <numbers_link>")
@@ -197,10 +220,11 @@ async def cngnumlink(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_status(status)
     await update.message.reply_text(f"✅ Numbers file link updated for {gid}.")
 
+
 async def addapi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 1:
         await update.message.reply_text("❌ Usage: /addapi <api_url>")
@@ -213,10 +237,11 @@ async def addapi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ API already exists.")
 
+
 async def rmvapi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
-        await update.message.reply_text("❌ You are not authorized to command this bot.")
+    if not is_owner(update.effective_user.id):
+        await update.message.reply_text("❌ Only owner can use this command.")
         return
     if len(context.args) != 1:
         await update.message.reply_text("❌ Usage: /rmvapi <api_url>")
@@ -229,9 +254,10 @@ async def rmvapi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ API not found.")
 
+
 async def listapis(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = get_status()
-    if not is_admin(update.effective_user.id, status):
+    if not has_limited_access(update.effective_user.id, status):
         await update.message.reply_text("❌ You are not authorized to command this bot.")
         return
     msg = "📡 APIs:\n" + "\n".join(status["apis"])
