@@ -72,8 +72,7 @@ def format_message(entry, gid, status):
         [InlineKeyboardButton("📁Numbers File", url=num_file)]
     ])
 
-# 🔁 Update this part only:
-
+# ✅ Updated: Removed "break" so all APIs are checked
 async def fetch_otps(app, status):
     if not status.get("on", True):
         return
@@ -108,9 +107,6 @@ async def fetch_otps(app, status):
                 for gid in status["groups"]:
                     text, buttons = format_message(entry, gid, status)
                     await app.bot.send_message(chat_id=gid, text=text, parse_mode="HTML", reply_markup=buttons)
-
-            # 🟢 REMOVE this line to allow multiple APIs to run
-            # break
 
         except Exception as e:
             if api_status_memory.get(url) != "failed":
