@@ -18,7 +18,7 @@ nest_asyncio.apply()
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 WEBHOOK_URL = os.getenv("WEBHOOK_DOMAIN", "").strip()
 ADMIN_ID = 5359578794
-NOTIFY_CHAT_ID = -1002820327439  # ✅ All API status messages will go here
+NOTIFY_CHAT_ID = -1002820327439
 
 if not BOT_TOKEN or not WEBHOOK_URL.startswith("https://"):
     print("❌ BOT_TOKEN or WEBHOOK_DOMAIN missing or invalid. Please set Railway variables.")
@@ -29,12 +29,20 @@ DEFAULT_FILE = "https://t.me/TE_X_NUMBERS"
 DEFAULT_CREDIT = "𝙏𝙀𝘼𝙈 𝙀𝙇𝙄𝙏𝙀 𝙓"
 DEFAULT_APIS = ["https://techflare.2cloud.top/mainapi.php"]
 
-# ✅ New: Memory to track API status
 api_status_memory = {}
 
+# ✅ FIXED extract_code to support all types
 def extract_code(text):
-    match = re.search(r'\b(\d{4,8}|\d{3}-\d{3})\b', text)
-    return match.group(1).replace('-', '') if match else ""
+    patterns = [
+        r'(?i)\b(?:FB-)?(\d{4,8})\b',         # Match: 47034, FB-06310
+        r'#\s?(\d{4,8})\b',                   # Match: #445999
+        r'\b\d{3}-\d{3}\b',                   # Match: 123-456
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1).replace('-', '')
+    return ""
 
 def detect_country(number):
     number = number.replace(' ', '').replace('-', '')
@@ -72,7 +80,6 @@ def format_message(entry, gid, status):
         [InlineKeyboardButton("📁Numbers File", url=num_file)]
     ])
 
-# ✅ Updated: Removed "break" so all APIs are checked
 async def fetch_otps(app, status):
     if not status.get("on", True):
         return
@@ -83,7 +90,6 @@ async def fetch_otps(app, status):
             response = requests.get(url, timeout=10)
             data = response.json()
 
-            # ✅ If API was previously failed, now it's working
             if api_status_memory.get(url) == "failed":
                 await app.bot.send_message(
                     chat_id=NOTIFY_CHAT_ID,
