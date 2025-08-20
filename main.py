@@ -62,8 +62,8 @@ def format_message(entry, gid, status):
     main_link = status["group_links"].get(str(gid), DEFAULT_CHANNEL)
     num_file = status["group_files"].get(str(gid), status.get("link", DEFAULT_FILE))
 
-    # Escape HTML but preserve newlines (Telegram supports \n)
-    safe_full = html.escape(full)
+    # Escape HTML and preserve line breaks using <br>
+    safe_full = html.escape(full).replace("\n", "<br>")
 
     return (
         f"✨ <b>𝙉𝙀𝙒 𝘾𝙊𝘿𝙀 𝙍𝙀𝘾𝙀𝙄𝙑𝙀𝘿</b> ✨\n"
@@ -73,7 +73,7 @@ def format_message(entry, gid, status):
         f"<b>⚙️ Service:</b> {entry['Platform']}\n"
         f"<b>☎️ Number:</b> <code>{entry['Number']}</code>\n"
         f"<b>🔑 OTP:</b> <code>{otp or 'N/A'}</code>\n"
-        f"✉️ <b>Full Message:</b>\n{safe_full}\n"
+        f"✉️ <b>Full Message:</b>\n{safe_full}\n"   # ✅ no <pre>, no merge, line breaks preserved
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📝 Note: ~ Wait at least 30 seconds to get your requested OTP code ~\n"
         f"Pᴏᴡᴇʀᴇᴅ ʙʏ {credit}\n"
