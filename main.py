@@ -62,8 +62,8 @@ def format_message(entry, gid, status):
     main_link = status["group_links"].get(str(gid), DEFAULT_CHANNEL)
     num_file = status["group_files"].get(str(gid), status.get("link", DEFAULT_FILE))
 
-    # ✅ Escape HTML and preserve newlines for Telegram HTML mode
-    safe_full = html.escape(full).replace("\n", "<br>")
+    # ✅ Escape HTML safely, then preserve real Telegram newlines
+    safe_full = html.escape(full).replace("\\n", "\n")
 
     return (
         f"✨ <b>𝙉𝙀𝙒 𝘾𝙊𝘿𝙀 𝙍𝙀𝘾𝙀𝙄𝙑𝙀𝘿</b> ✨\n"
