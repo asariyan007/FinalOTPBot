@@ -50,6 +50,8 @@ def detect_country(number):
             return country_codes[code]
     return ("Unknown", "🌍")
 
+from telegram.helpers import escape_html
+
 def format_message(entry, gid, status):
     time_now = datetime.now().strftime('%H:%M:%S')
     date_now = datetime.now().strftime('%d %B %Y')
@@ -69,7 +71,7 @@ def format_message(entry, gid, status):
         f"<b>⚙️ Service:</b> {entry['Platform']}\n"
         f"<b>☎️ Number:</b> <code>{entry['Number']}</code>\n"
         f"<b>🔑 OTP:</b> <code>{otp or 'N/A'}</code>\n"
-        f"✉️ <b>Full Message:</b>\n<pre>{full}</pre>\n"
+        f"✉️ <b>Full Message:</b>\n<pre>{escape_html(full)}</pre>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📝 Note: ~ Wait at least 30 seconds to get your requested OTP code ~\n"
         f"Pᴏᴡᴇʀᴇᴅ ʙʏ {credit}\n"
