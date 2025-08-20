@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 import requests
 import nest_asyncio
+import html  # ✅ for escaping text safely
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler
 from country_codes import country_codes
@@ -50,8 +51,6 @@ def detect_country(number):
             return country_codes[code]
     return ("Unknown", "🌍")
 
-from telegram.helpers import escape_html
-
 def format_message(entry, gid, status):
     time_now = datetime.now().strftime('%H:%M:%S')
     date_now = datetime.now().strftime('%d %B %Y')
@@ -71,7 +70,7 @@ def format_message(entry, gid, status):
         f"<b>⚙️ Service:</b> {entry['Platform']}\n"
         f"<b>☎️ Number:</b> <code>{entry['Number']}</code>\n"
         f"<b>🔑 OTP:</b> <code>{otp or 'N/A'}</code>\n"
-        f"✉️ <b>Full Message:</b>\n<pre>{escape_html(full)}</pre>\n"
+        f"✉️ <b>Full Message:</b>\n<pre>{html.escape(full)}</pre>\n"  # ✅ escape_html → html.escape
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📝 Note: ~ Wait at least 30 seconds to get your requested OTP code ~\n"
         f"Pᴏᴡᴇʀᴇᴅ ʙʏ {credit}\n"
@@ -107,7 +106,6 @@ async def fetch_otps(app, status):
 
             new_entries = []
             for entry in data:
-                # ✅ Skip invalid entries like {'Number': 0, 'Platform': 0, 'OTP': 0}
                 if not all(isinstance(entry.get(k), str) and entry.get(k).strip() for k in ("Number", "Platform", "OTP")):
                     print("[SKIPPED] Invalid entry:", entry)
                     continue
@@ -160,8 +158,6 @@ def get_all_commands():
         ("rmvapi", rmvapi),
         ("listapis", listapis),
         ("admins", admins),
-
-        # ✅ Newly added commands:
         ("broadcast", broadcast),
         ("allow", allow_group_access),
         ("disallow", disallow_group_access),
