@@ -70,7 +70,7 @@ def format_message(entry, gid, status):
         f"<b>⚙️ Service:</b> {entry['Platform']}\n"
         f"<b>☎️ Number:</b> <code>{entry['Number']}</code>\n"
         f"<b>🔑 OTP:</b> <code>{otp or 'N/A'}</code>\n"
-        f"✉️ <b>Full Message:</b>\n{html.escape(full)}\n"  # ✅ removed <pre>...</pre>
+        f"✉️ <b>Full Message:</b>\n{html.escape(full).replace(chr(10), '<br>')}\n"  # ✅ preserve line breaks
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📝 Note: ~ Wait at least 30 seconds to get your requested OTP code ~\n"
         f"Pᴏᴡᴇʀᴇᴅ ʙʏ {credit}\n"
