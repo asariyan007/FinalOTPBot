@@ -33,15 +33,24 @@ DEFAULT_APIS = ["https://techflare.2cloud.top/mainapi.php"]
 api_status_memory = {}
 
 def extract_code(text):
+    """
+    Universal OTP extractor: works for Telegram, Facebook, WhatsApp, etc.
+    Returns first 4–8 digit code found in the text.
+    """
+
+    # Common patterns: "Telegram code 12345", "Facebook code: 67890", "OTP is 4567", etc.
     patterns = [
-        r'(?i)\b(?:FB-)?(\d{4,8})\b',
-        r'#\s?(\d{4,8})\b',
-        r'\b\d{3}-\d{3}\b',
+        r'(?i)(?:telegram|facebook|whatsapp|otp|code)[:\s-]*?(\d{4,8})',
+        r'(?i)\b(?:FB-)?(\d{4,8})\b',   # FB-1234 or plain 1234–99999999
+        r'#\s?(\d{4,8})\b',             # #1234
+        r'\b\d{3}-\d{3}\b'              # 123-456
     ]
+
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
             return match.group(1).replace('-', '')
+
     return ""
 
 def detect_country(number):
