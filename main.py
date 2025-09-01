@@ -35,21 +35,22 @@ api_status_memory = {}
 def extract_code(text):
     """
     Universal OTP extractor: works for Telegram, Facebook, WhatsApp, etc.
-    Returns first 4–8 digit code found in the text.
+    Returns first 4–8 digit code found in the text (with or without dash).
     """
+    if not isinstance(text, str):
+        return ""
 
-    # Common patterns: "Telegram code 12345", "Facebook code: 67890", "OTP is 4567", etc.
     patterns = [
-        r'(?i)(?:telegram|facebook|whatsapp|otp|code)[:\s-]*?(\d{4,8})',
-        r'(?i)\b(?:FB-)?(\d{4,8})\b',   # FB-1234 or plain 1234–99999999
+        r'(?i)(?:telegram|facebook|whatsapp|otp|code)[:\s-]*?(\d{4,8})',   # WhatsApp code 123456
+        r'(?i)#?\s?(?:telegram|facebook|whatsapp|otp|code)?\s?(\d{3}-\d{3})',  # WhatsApp code 123-456
+        r'(?i)\b(?:FB-)?(\d{4,8})\b',   # FB-1234 or plain 1234
         r'#\s?(\d{4,8})\b',             # #1234
-        r'\b\d{3}-\d{3}\b'              # 123-456
     ]
 
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
-            return match.group(1).replace('-', '')
+            return match.group(1).replace("-", "")
 
     return ""
 
@@ -91,6 +92,7 @@ def format_message(entry, gid, status):
         [InlineKeyboardButton("🚀Main Channel", url=main_link)],
         [InlineKeyboardButton("📁Numbers File", url=num_file)]
     ])
+
 async def fetch_otps(app, status):
     if not status.get("on", True):
         return
